@@ -7,6 +7,7 @@ import Exchanges from './pages/Exchanges';
 import Community from './pages/Community';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import ConnectionDetail from './pages/ConnectionDetail';
 import { AppProvider } from './context/AppContext';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
             <Route path="/community" element={<Community />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/connection/:id" element={<ConnectionDetail />} />
           </Routes>
         </div>
       </Router>

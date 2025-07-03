@@ -13,12 +13,34 @@ import {
   TrendingUp,
   Award,
   Heart,
-  Share2
+  Share2,
+  Tag,
+  X,
+  ChevronDown
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Community = () => {
   const [activeTab, setActiveTab] = useState('discover');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showTagFilter, setShowTagFilter] = useState(false);
+  const [filters, setFilters] = useState({
+    location: '',
+    rating: '',
+    availability: '',
+    experience: ''
+  });
+
+  const availableTags = [
+    'Programming', 'Web Development', 'Mobile Development', 'Data Science', 
+    'Machine Learning', 'AI', 'UI/UX Design', 'Graphic Design', 'Photography',
+    'Digital Marketing', 'Content Writing', 'SEO', 'Social Media', 'Business',
+    'Languages', 'Spanish', 'French', 'German', 'Japanese', 'Korean', 'Chinese',
+    'Music', 'Guitar', 'Piano', 'Singing', 'Art', 'Drawing', 'Painting',
+    'Cooking', 'Fitness', 'Yoga', 'Dance', 'Writing', 'Public Speaking',
+    'Leadership', 'Project Management', 'Finance', 'Accounting', 'Sales'
+  ];
 
   const communityMembers = [
     {
@@ -29,10 +51,13 @@ const Community = () => {
       location: 'New York, USA',
       skills: ['Machine Learning', 'Python', 'Data Science'],
       wantToLearn: ['React', 'Web Development', 'UI/UX'],
+      tags: ['Programming', 'Data Science', 'AI', 'Python'],
       exchanges: 24,
       joined: '2024-03-15',
       online: true,
-      matchScore: 95
+      matchScore: 95,
+      experience: 'Expert',
+      availability: 'Weekends'
     },
     {
       id: 2,
@@ -42,10 +67,13 @@ const Community = () => {
       location: 'Madrid, Spain',
       skills: ['Spanish', 'Guitar', 'Photography'],
       wantToLearn: ['Web Development', 'Digital Marketing'],
+      tags: ['Languages', 'Spanish', 'Music', 'Guitar', 'Photography', 'Art'],
       exchanges: 18,
       joined: '2024-02-20',
       online: false,
-      matchScore: 87
+      matchScore: 87,
+      experience: 'Intermediate',
+      availability: 'Evenings'
     },
     {
       id: 3,
@@ -55,10 +83,13 @@ const Community = () => {
       location: 'London, UK',
       skills: ['Digital Marketing', 'Content Writing', 'SEO'],
       wantToLearn: ['Python', 'Data Analysis'],
+      tags: ['Digital Marketing', 'Content Writing', 'SEO', 'Social Media', 'Business'],
       exchanges: 32,
       joined: '2024-01-10',
       online: true,
-      matchScore: 92
+      matchScore: 92,
+      experience: 'Expert',
+      availability: 'Flexible'
     },
     {
       id: 4,
@@ -68,10 +99,13 @@ const Community = () => {
       location: 'Seoul, Korea',
       skills: ['Korean', 'Graphic Design', 'Illustration'],
       wantToLearn: ['UI/UX Design', 'Figma'],
+      tags: ['Languages', 'Korean', 'Graphic Design', 'UI/UX Design', 'Art'],
       exchanges: 15,
       joined: '2024-04-05',
       online: true,
-      matchScore: 78
+      matchScore: 78,
+      experience: 'Intermediate',
+      availability: 'Mornings'
     }
   ];
 
@@ -118,11 +152,39 @@ const Community = () => {
     { skill: 'UI/UX Design', growth: '+22%', exchanges: 128 }
   ];
 
-  const filteredMembers = communityMembers.filter(member =>
-    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    member.wantToLearn.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const addTag = (tag: string) => {
+    if (!selectedTags.includes(tag)) {
+      setSelectedTags([...selectedTags, tag]);
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setSelectedTags(selectedTags.filter(t => t !== tag));
+  };
+
+  const filteredMembers = communityMembers.filter(member => {
+    const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         member.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         member.wantToLearn.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesTags = selectedTags.length === 0 || 
+                       selectedTags.some(tag => member.tags.includes(tag));
+    
+    const matchesLocation = !filters.location || 
+                           member.location.toLowerCase().includes(filters.location.toLowerCase());
+    
+    const matchesRating = !filters.rating || 
+                         member.rating >= parseFloat(filters.rating);
+    
+    const matchesExperience = !filters.experience || 
+                             member.experience === filters.experience;
+    
+    const matchesAvailability = !filters.availability || 
+                               member.availability === filters.availability;
+
+    return matchesSearch && matchesTags && matchesLocation && matchesRating && 
+           matchesExperience && matchesAvailability;
+  });
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -221,22 +283,131 @@ const Community = () => {
                   </div>
                 </div>
 
-                {/* Search and Filter */}
-                <div className="p-6 border-b border-gray-200">
+                {/* Enhanced Search and Filter */}
+                <div className="p-6 border-b border-gray-200 space-y-4">
                   <div className="flex items-center space-x-4">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                       <input
                         type="text"
-                        placeholder="Search people or skills..."
+                        placeholder="Search people, skills, or locations..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                       />
                     </div>
+                    <button 
+                      onClick={() => setShowTagFilter(!showTagFilter)}
+                      className="p-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                    >
+                      <Tag className="w-5 h-5 text-gray-600" />
+                      <span className="text-sm text-gray-600">Tags</span>
+                      <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform ${showTagFilter ? 'rotate-180' : ''}`} />
+                    </button>
                     <button className="p-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
                       <Filter className="w-5 h-5 text-gray-600" />
                     </button>
+                  </div>
+
+                  {/* Tag Filter */}
+                  {showTagFilter && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="mb-3">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Filter by Tags</h4>
+                        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                          {availableTags.map((tag) => (
+                            <button
+                              key={tag}
+                              onClick={() => addTag(tag)}
+                              className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                                selectedTags.includes(tag)
+                                  ? 'bg-primary-100 text-primary-800 border border-primary-300'
+                                  : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {selectedTags.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Tags</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedTags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm flex items-center space-x-1"
+                              >
+                                <span>{tag}</span>
+                                <button
+                                  onClick={() => removeTag(tag)}
+                                  className="text-primary-600 hover:text-primary-800"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </span>
+                            ))}
+                            <button
+                              onClick={() => setSelectedTags([])}
+                              className="px-3 py-1 text-gray-500 hover:text-gray-700 text-sm"
+                            >
+                              Clear all
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Advanced Filters */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <select
+                      value={filters.location}
+                      onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    >
+                      <option value="">All Locations</option>
+                      <option value="USA">USA</option>
+                      <option value="UK">UK</option>
+                      <option value="Spain">Spain</option>
+                      <option value="Korea">Korea</option>
+                    </select>
+
+                    <select
+                      value={filters.rating}
+                      onChange={(e) => setFilters({ ...filters, rating: e.target.value })}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    >
+                      <option value="">Any Rating</option>
+                      <option value="4.5">4.5+ Stars</option>
+                      <option value="4.0">4.0+ Stars</option>
+                      <option value="3.5">3.5+ Stars</option>
+                    </select>
+
+                    <select
+                      value={filters.experience}
+                      onChange={(e) => setFilters({ ...filters, experience: e.target.value })}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    >
+                      <option value="">Any Experience</option>
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Expert">Expert</option>
+                    </select>
+
+                    <select
+                      value={filters.availability}
+                      onChange={(e) => setFilters({ ...filters, availability: e.target.value })}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    >
+                      <option value="">Any Time</option>
+                      <option value="Mornings">Mornings</option>
+                      <option value="Evenings">Evenings</option>
+                      <option value="Weekends">Weekends</option>
+                      <option value="Flexible">Flexible</option>
+                    </select>
                   </div>
                 </div>
 
@@ -266,6 +437,8 @@ const Community = () => {
                                   <span className="text-gray-400">•</span>
                                   <MapPin className="w-4 h-4 text-gray-400" />
                                   <span className="text-sm text-gray-600">{member.location}</span>
+                                  <span className="text-gray-400">•</span>
+                                  <span className="text-sm text-gray-600">{member.experience}</span>
                                 </div>
                               </div>
                             </div>
@@ -277,9 +450,22 @@ const Community = () => {
                               <button className="p-2 text-gray-400 hover:text-primary-600 rounded-lg hover:bg-primary-50">
                                 <MessageCircle className="w-5 h-5" />
                               </button>
-                              <button className="p-2 text-gray-400 hover:text-primary-600 rounded-lg hover:bg-primary-50">
-                                <UserPlus className="w-5 h-5" />
-                              </button>
+                            </div>
+                          </div>
+
+                          {/* Tags */}
+                          <div className="mb-4">
+                            <div className="flex flex-wrap gap-2">
+                              {member.tags.slice(0, 6).map((tag, index) => (
+                                <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                                  {tag}
+                                </span>
+                              ))}
+                              {member.tags.length > 6 && (
+                                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                                  +{member.tags.length - 6} more
+                                </span>
+                              )}
                             </div>
                           </div>
 
@@ -314,12 +500,15 @@ const Community = () => {
                               </span>
                               <span className="flex items-center">
                                 <Clock className="w-4 h-4 mr-1" />
-                                Joined {new Date(member.joined).toLocaleDateString()}
+                                {member.availability}
                               </span>
                             </div>
-                            <button className="px-6 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-colors font-medium">
+                            <Link 
+                              to={`/connection/${member.id}`}
+                              className="px-6 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 transition-colors font-medium"
+                            >
                               Connect
-                            </button>
+                            </Link>
                           </div>
                         </div>
                       ))}
